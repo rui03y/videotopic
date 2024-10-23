@@ -52,7 +52,6 @@
             cursor: pointer;
             color: #00aaff;
             transition: background-color 0.3s, border-color 0.3s;
-            position: relative;
         }
 
         .drop-zone.hover {
@@ -210,7 +209,9 @@
             });
 
             // 点击区域时打开文件选择器
-            dropZone.addEventListener('click', () => fileInput.click());
+            dropZone.addEventListener('click', function() {
+                fileInput.click();  // 确保点击时触发文件选择器
+            });
 
             // 处理拖拽文件
             dropZone.addEventListener('drop', handleDrop, false);
@@ -266,4 +267,3 @@
                 }, { once: true });
             });
 
-            // 提取帧，并显示预
