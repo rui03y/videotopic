@@ -257,9 +257,4 @@
                 downloadButton.addEventListener('click', downloadImage);
             }
 
-            // 下载图像函数
-            function downloadImage() {
-                const link = document.createElement('a');
-                link.href = currentImageURL;
-                // 先去掉原文件名的后缀（如 .mp4），再替换 "video" 为 "pic"
-                let cleanFileName = videoFileName.replace(/\.[^/.]+$/, '').replace(/video
+            // 下载图像
