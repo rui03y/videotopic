@@ -194,8 +194,11 @@
 
             // 获取视频的封面（第一帧），并下载
             getCoverButton.addEventListener('click', function () {
-                videoElement.currentTime = 0;  // 设置为视频开始的第一帧
-                videoElement.addEventListener('seeked', function() {
+                videoElement.addEventListener('loadeddata', function() {
+                    videoElement.currentTime = 0;  // 设置为视频开始的第一帧
+                });
+
+                videoElement.addEventListener('seeked', function () {
                     canvasElement.width = videoElement.videoWidth;
                     canvasElement.height = videoElement.videoHeight;
                     ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
@@ -245,4 +248,9 @@
 
                 // 触发下载
                 link.click();
-           
+            });
+        });
+    </script>
+
+</body>
+</html>
