@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Frame Extractor</title>
+    <title>视频帧提取器</title>
     <style>
         /* 全局样式 */
         * {
@@ -65,17 +65,18 @@
         button {
             padding: 12px 20px;
             font-size: 16px;
-            background-color: #007BFF;
+            background-color: #28a745;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 30px;
             cursor: pointer;
             margin: 10px;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.2s;
         }
 
         button:hover {
-            background-color: #0056b3;
+            background-color: #218838;
+            transform: translateY(-2px);
         }
 
         button:disabled {
@@ -105,7 +106,7 @@
         .modal-content {
             background-color: #fff;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 12px;
             text-align: center;
             max-width: 400px;
             width: 90%;
@@ -123,9 +124,10 @@
             color: white;
             padding: 10px 15px;
             border: none;
-            border-radius: 6px;
+            border-radius: 30px;
             cursor: pointer;
             margin-top: 10px;
+            transition: background-color 0.3s;
         }
 
         .close-btn:hover {
@@ -137,16 +139,16 @@
 <body>
 
     <div class="container">
-        <h1>Video Frame Extractor</h1>
+        <h1>视频帧提取器</h1>
         <div class="drop-zone" id="dropZone">
-            <p>Drag & Drop Video Here or click to upload</p>
+            <p>拖动视频到此处，或点击上传</p>
         </div>
         <input type="file" id="fileInput" accept="video/*">
         
         <video id="videoElement" controls style="display: none;"></video>
         <canvas id="canvasElement" style="display: none;"></canvas>
         
-        <button id="getCoverButton" style="display: none;">提取视频封面</button>
+        <button id="getCoverButton" style="display: none;">提取封面</button>
         <button id="getCurrentFrameButton" style="display: none;">提取当前帧</button>
         <button id="getRandomFrameButton" style="display: none;">提取随机帧</button>
     </div>
@@ -156,8 +158,8 @@
         <div class="modal-content">
             <img id="previewImage" src="" alt="Preview">
             <br>
-            <button id="downloadButton">Download</button>
-            <button id="closeButton" class="close-btn">Close</button>
+            <button id="downloadButton">下载</button>
+            <button id="closeButton" class="close-btn">关闭</button>
         </div>
     </div>
 
@@ -250,22 +252,14 @@
                 previewImage.src = currentImageURL;
                 previewModal.style.display = 'flex';
 
-                // 更新下载按钮的链接
-                downloadButton.addEventListener('click', function() {
-                    const link = document.createElement('a');
-                    link.href = currentImageURL;
-                    const imageName = videoFileName.replace(/video/gi, 'pic') + '.png';
-                    link.download = imageName;
-                    link.click();
-                });
+                // 先移除旧的点击事件监听器，再绑定下载事件，防止重复绑定
+                downloadButton.removeEventListener('click', downloadImage);
+                downloadButton.addEventListener('click', downloadImage);
             }
 
-            // 关闭弹窗
-            closeButton.addEventListener('click', function() {
-                previewModal.style.display = 'none';
-            });
-        });
-    </script>
-
-</body>
-</html>
+            // 下载图像函数
+            function downloadImage() {
+                const link = document.createElement('a');
+                link.href = currentImageURL;
+                // 先去掉原文件名的后缀（如 .mp4），再替换 "video" 为 "pic"
+                let cleanFileName = videoFileName.replace(/\.[^/.]+$/, '').replace(/video
