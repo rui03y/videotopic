@@ -60,6 +60,7 @@
     
     <button id="getCoverButton" style="display: none;">Get and Download Video Cover</button>
     <button id="randomFrameButton" style="display: none;">Extract Random Frame</button>
+    <button id="downloadFrameButton" style="display: none;">Download Random Frame</button>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -69,6 +70,7 @@
             const canvasElement = document.getElementById('canvasElement');
             const randomFrameButton = document.getElementById('randomFrameButton');
             const getCoverButton = document.getElementById('getCoverButton');
+            const downloadFrameButton = document.getElementById('downloadFrameButton');
             const ctx = canvasElement.getContext('2d');
             let videoFileName = '';
 
@@ -118,12 +120,13 @@
                 videoElement.style.display = 'block';
                 getCoverButton.style.display = 'inline-block';
                 randomFrameButton.style.display = 'inline-block';
+                downloadFrameButton.style.display = 'none'; // 隐藏下载随机帧按钮，直到帧被提取
             }
 
             // 获取视频的封面（第一帧），并下载
             getCoverButton.addEventListener('click', function () {
                 videoElement.currentTime = 0;  // 设置为视频开始的第一帧
-                videoElement.addEventListener('loadeddata', function () {
+                videoElement.addEventListener('seeked', function() {
                     canvasElement.width = videoElement.videoWidth;
                     canvasElement.height = videoElement.videoHeight;
                     ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
@@ -154,7 +157,25 @@
                     canvasElement.height = videoElement.videoHeight;
                     ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
                     videoElement.removeEventListener('seeked', extractFrame);
+
+                    // 显示下载按钮
+                    downloadFrameButton.style.display = 'inline-block';
                 }, { once: true });
+            });
+
+            // 下载随机帧
+            downloadFrameButton.addEventListener('click', function() {
+                // 下载当前显示的帧
+                const link = document.createElement('a');
+                link.href = canvasElement.toDataURL('image/png');
+
+                // 生成下载文件名，替换 "video" 为 "pic" 并标识随机帧
+                let imageName = videoFileName.replace(/video/gi, 'pic');
+                imageName = imageName.replace(/\.[^/.]+$/, "_random.png"); // 修改扩展名并加上标识
+                link.download = imageName;
+
+                // 触发下载
+                link.click();
             });
         });
     </script>
