@@ -181,22 +181,45 @@
             let currentImageURL = '';
 
             // 阻止浏览器默认的拖拽事件
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, preventDefaults, false);
-            });
-
             function preventDefaults(e) {
                 e.preventDefault();
                 e.stopPropagation();
             }
 
-            // 点击触发文件选择器
-            dropZone.addEventListener('click', function () {
-                fileInput.click();
+            // 确保拖拽高亮工作
+            function highlight() {
+                dropZone.classList.add('highlight');
+            }
+
+            function unhighlight() {
+                dropZone.classList.remove('highlight');
+            }
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
             });
 
-            // 处理文件上传
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+
+            dropZone.addEventListener('drop', handleDrop, false);
+            dropZone.addEventListener('click', function () {
+                fileInput.click();  // 触发文件选择器
+            });
+
             fileInput.addEventListener('change', handleFileSelection, false);
+
+            function handleDrop(e) {
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('video/')) {
+                    handleVideoFile(file);
+                }
+            }
 
             function handleFileSelection(e) {
                 const file = e.target.files[0];
@@ -252,9 +275,27 @@
                 previewImage.src = currentImageURL;
                 previewModal.style.display = 'flex';
 
-                // 先移除旧的点击事件监听器，再绑定下载事件，防止重复绑定
+                // 确保下载按钮只绑定一次事件
                 downloadButton.removeEventListener('click', downloadImage);
                 downloadButton.addEventListener('click', downloadImage);
             }
 
             // 下载图像
+            function downloadImage() {
+                const link = document.createElement('a');
+                link.href = currentImageURL;
+                let cleanFileName = videoFileName.replace(/\.[^/.]+$/, '').replace(/video/gi, 'pic');
+                const imageName = cleanFileName + '.png';
+                link.download = imageName;
+                link.click();
+            }
+
+            // 关闭弹窗
+            closeButton.addEventListener('click', function() {
+                previewModal.style.display = 'none';
+            });
+        });
+    </script>
+
+</body>
+</html>
