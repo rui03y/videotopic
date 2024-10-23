@@ -5,62 +5,131 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Frame Extractor</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        /* 全局样式 */
+        * {
             margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
         }
 
+        body {
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* 主容器 */
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        /* 标题 */
+        h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+
+        /* 拖放区域样式 */
         .drop-zone {
-            width: 300px;
+            width: 100%;
             height: 200px;
-            border: 2px dashed #ccc;
+            border: 2px dashed #00aaff;
+            border-radius: 8px;
             display: flex;
             justify-content: center;
             align-items: center;
             margin-bottom: 20px;
             cursor: pointer;
-            color: #888;
+            color: #00aaff;
+            transition: background-color 0.3s, border-color 0.3s;
+            position: relative;
         }
 
         .drop-zone.hover {
-            border-color: #00aaff;
+            background-color: #e6f7ff;
+            border-color: #007acc;
         }
 
+        .drop-zone p {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .drop-zone-icon {
+            font-size: 48px;
+            color: #00aaff;
+            margin-bottom: 10px;
+        }
+
+        /* 视频与画布 */
         video, canvas {
             display: block;
-            margin-bottom: 20px;
+            margin: 20px auto;
             max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
 
+        /* 按钮样式 */
         button {
-            padding: 10px 20px;
+            padding: 12px 20px;
+            font-size: 16px;
             background-color: #007BFF;
             color: white;
             border: none;
+            border-radius: 6px;
             cursor: pointer;
+            margin: 10px;
+            transition: background-color 0.3s, transform 0.2s;
         }
 
         button:hover {
             background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* 隐藏的文件输入 */
+        #fileInput {
+            display: none;
         }
 
     </style>
 </head>
 <body>
 
-    <div class="drop-zone" id="dropZone">Drag & Drop Video Here</div>
-    <input type="file" id="fileInput" accept="video/*" style="display: none;">
-    
-    <video id="videoElement" controls style="display: none;"></video>
-    <canvas id="canvasElement"></canvas>
-    
-    <button id="getCoverButton" style="display: none;">Get and Download Video Cover</button>
-    <button id="randomFrameButton" style="display: none;">Extract Random Frame</button>
-    <button id="downloadFrameButton" style="display: none;">Download Random Frame</button>
+    <div class="container">
+        <h1>Video Frame Extractor</h1>
+        <div class="drop-zone" id="dropZone">
+            <div>
+                <div class="drop-zone-icon">📂</div>
+                <p>Drag & Drop Video Here</p>
+                <p>or click to upload</p>
+            </div>
+        </div>
+        <input type="file" id="fileInput" accept="video/*" style="display: none;">
+        
+        <video id="videoElement" controls style="display: none;"></video>
+        <canvas id="canvasElement" style="display: none;"></canvas>
+        
+        <button id="getCoverButton" style="display: none;">Get and Download Video Cover</button>
+        <button id="randomFrameButton" style="display: none;">Extract Random Frame</button>
+        <button id="downloadFrameButton" style="display: none;">Download Random Frame</button>
+    </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -176,9 +245,4 @@
 
                 // 触发下载
                 link.click();
-            });
-        });
-    </script>
-
-</body>
-</html>
+           
