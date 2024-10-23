@@ -32,13 +32,6 @@
             text-align: center;
         }
 
-        /* 标题 */
-        h1 {
-            margin-bottom: 20px;
-            font-size: 24px;
-            color: #333;
-        }
-
         /* 拖放区域样式 */
         .drop-zone {
             width: 100%;
@@ -54,23 +47,12 @@
             transition: background-color 0.3s, border-color 0.3s;
         }
 
-        .drop-zone.hover {
-            background-color: #e6f7ff;
-            border-color: #007acc;
-        }
-
         .drop-zone p {
             font-size: 16px;
             font-weight: 600;
         }
 
-        .drop-zone-icon {
-            font-size: 48px;
-            color: #00aaff;
-            margin-bottom: 10px;
-        }
-
-        /* 视频与画布 */
+        /* 视频和画布样式 */
         video, canvas {
             display: block;
             margin: 20px auto;
@@ -89,12 +71,11 @@
             border-radius: 6px;
             cursor: pointer;
             margin: 10px;
-            transition: background-color 0.3s, transform 0.2s;
+            transition: background-color 0.3s;
         }
 
         button:hover {
             background-color: #0056b3;
-            transform: translateY(-2px);
         }
 
         button:disabled {
@@ -135,10 +116,6 @@
             border-radius: 8px;
             margin-bottom: 15px;
         }
-
-        .modal button {
-            margin: 5px;
-        }
     </style>
 </head>
 <body>
@@ -146,11 +123,7 @@
     <div class="container">
         <h1>Video Frame Extractor</h1>
         <div class="drop-zone" id="dropZone">
-            <div>
-                <div class="drop-zone-icon">📂</div>
-                <p>Drag & Drop Video Here</p>
-                <p>or click to upload</p>
-            </div>
+            <p>Drag & Drop Video Here or click to upload</p>
         </div>
         <input type="file" id="fileInput" accept="video/*">
         
@@ -162,16 +135,6 @@
         <button id="getRandomFrameButton" style="display: none;">Extract Random Frame</button>
     </div>
 
-    <!-- 弹窗 -->
-    <div class="modal" id="previewModal">
-        <div class="modal-content">
-            <img id="previewImage" src="" alt="Preview">
-            <br>
-            <button id="downloadButton">Download</button>
-            <button id="closeButton">Close</button>
-        </div>
-    </div>
-
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const dropZone = document.getElementById('dropZone');
@@ -181,10 +144,6 @@
             const getCoverButton = document.getElementById('getCoverButton');
             const getCurrentFrameButton = document.getElementById('getCurrentFrameButton');
             const getRandomFrameButton = document.getElementById('getRandomFrameButton');
-            const previewModal = document.getElementById('previewModal');
-            const previewImage = document.getElementById('previewImage');
-            const downloadButton = document.getElementById('downloadButton');
-            const closeButton = document.getElementById('closeButton');
             const ctx = canvasElement.getContext('2d');
             let videoFileName = '';
             let currentImageURL = '';
@@ -199,30 +158,13 @@
                 e.stopPropagation();
             }
 
-            // 添加拖动高亮效果
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropZone.addEventListener(eventName, () => dropZone.classList.add('hover'), false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, () => dropZone.classList.remove('hover'), false);
-            });
-
-            // 点击区域时打开文件选择器
+            // 点击触发文件选择器
             dropZone.addEventListener('click', function () {
-                fileInput.click();  // 确保点击时触发文件选择器
+                fileInput.click();
             });
 
-            // 处理拖拽文件
-            dropZone.addEventListener('drop', handleDrop, false);
+            // 处理文件上传
             fileInput.addEventListener('change', handleFileSelection, false);
-
-            function handleDrop(e) {
-                const file = e.dataTransfer.files[0];
-                if (file && file.type.startsWith('video/')) {
-                    handleVideoFile(file);
-                }
-            }
 
             function handleFileSelection(e) {
                 const file = e.target.files[0];
@@ -245,14 +187,14 @@
             getCoverButton.addEventListener('click', function () {
                 videoElement.currentTime = 0;  // 跳转到视频第一帧
                 videoElement.addEventListener('seeked', function captureFrame() {
-                    extractFrame("cover");
+                    extractFrame();
                     videoElement.removeEventListener('seeked', captureFrame);
                 }, { once: true });
             });
 
             // 提取当前播放帧
             getCurrentFrameButton.addEventListener('click', function () {
-                extractFrame("current");
+                extractFrame();
             });
 
             // 提取随机帧
@@ -261,9 +203,26 @@
                 const randomTime = Math.random() * duration;
                 videoElement.currentTime = randomTime;
 
-                videoElement.addEventListener('seeked', function extractRandomFrame() {
-                    extractFrame("random");
-                    videoElement.removeEventListener('seeked', extractRandomFrame);
+                videoElement.addEventListener('seeked', function captureRandomFrame() {
+                    extractFrame();
+                    videoElement.removeEventListener('seeked', captureRandomFrame);
                 }, { once: true });
             });
 
+            // 提取帧并绘制到画布
+            function extractFrame() {
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
+                ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+
+                // 显示预览图片
+                const dataURL = canvasElement.toDataURL('image/png');
+                const img = document.createElement('img');
+                img.src = dataURL;
+                document.body.appendChild(img);
+            }
+        });
+    </script>
+
+</body>
+</html>
