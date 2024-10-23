@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>图片素材快捷生成</title>
+    <title>视频帧提取器</title>
     <style>
         /* 全局样式 */
         * {
@@ -118,6 +118,17 @@
             margin-bottom: 15px;
         }
 
+        /* 文件名输入框 */
+        .filename-input {
+            width: 100%;
+            padding: 10px;
+            margin: 15px 0;
+            font-size: 16px;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+        }
+
         /* 关闭按钮 */
         .close-btn {
             background-color: #ff0000;
@@ -134,12 +145,17 @@
             background-color: #cc0000;
         }
 
+        /* 高亮显示 pic */
+        .highlight {
+            color: red;
+        }
+
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>图片素材快速生成</h1>
+        <h1>视频帧提取器</h1>
         <div class="drop-zone" id="dropZone">
             <p>拖动视频到此处，或点击上传</p>
         </div>
@@ -157,6 +173,7 @@
     <div class="modal" id="previewModal">
         <div class="modal-content">
             <img id="previewImage" src="" alt="Preview">
+            <input type="text" id="filenameInput" class="filename-input">
             <br>
             <button id="downloadButton">下载</button>
             <button id="closeButton" class="close-btn">关闭</button>
@@ -174,6 +191,7 @@
             const getRandomFrameButton = document.getElementById('getRandomFrameButton');
             const previewModal = document.getElementById('previewModal');
             const previewImage = document.getElementById('previewImage');
+            const filenameInput = document.getElementById('filenameInput');
             const downloadButton = document.getElementById('downloadButton');
             const closeButton = document.getElementById('closeButton');
             const ctx = canvasElement.getContext('2d');
@@ -273,6 +291,11 @@
                 // 获取图片 URL 并显示到弹窗
                 currentImageURL = canvasElement.toDataURL('image/png');
                 previewImage.src = currentImageURL;
+
+                // 生成默认的文件名并显示在输入框中，标红 "pic"
+                let cleanFileName = videoFileName.replace(/\.[^/.]+$/, '').replace(/video/gi, '<span class="highlight">pic</span>');
+                filenameInput.value = videoFileName.replace(/\.[^/.]+$/, '').replace(/video/gi, 'pic');
+                
                 previewModal.style.display = 'flex';
 
                 // 确保下载按钮只绑定一次事件
@@ -284,8 +307,7 @@
             function downloadImage() {
                 const link = document.createElement('a');
                 link.href = currentImageURL;
-                let cleanFileName = videoFileName.replace(/\.[^/.]+$/, '').replace(/video/gi, 'pic');
-                const imageName = cleanFileName + '.png';
+                const imageName = filenameInput.value + '.png';  // 使用编辑后的文件名
                 link.download = imageName;
                 link.click();
             }
