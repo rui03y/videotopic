@@ -257,4 +257,13 @@
             // 提取随机帧
             getRandomFrameButton.addEventListener('click', function () {
                 const duration = videoElement.duration;
-                const randomTime = Math.random()
+                const randomTime = Math.random() * duration;
+                videoElement.currentTime = randomTime;
+
+                videoElement.addEventListener('seeked', function extractRandomFrame() {
+                    extractFrame("random");
+                    videoElement.removeEventListener('seeked', extractRandomFrame);
+                }, { once: true });
+            });
+
+            // 提取帧，并显示预
