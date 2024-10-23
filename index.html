@@ -108,6 +108,38 @@
             display: none;
         }
 
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .modal button {
+            margin: 5px;
+        }
     </style>
 </head>
 <body>
@@ -126,9 +158,19 @@
         <video id="videoElement" controls style="display: none;"></video>
         <canvas id="canvasElement" style="display: none;"></canvas>
         
-        <button id="getCoverButton" style="display: none;">Get and Download Video Cover</button>
-        <button id="randomFrameButton" style="display: none;">Extract Random Frame</button>
-        <button id="downloadFrameButton" style="display: none;">Download Random Frame</button>
+        <button id="getCoverButton" style="display: none;">Extract Video Cover</button>
+        <button id="getCurrentFrameButton" style="display: none;">Extract Current Frame</button>
+        <button id="getRandomFrameButton" style="display: none;">Extract Random Frame</button>
+    </div>
+
+    <!-- 弹窗 -->
+    <div class="modal" id="previewModal">
+        <div class="modal-content">
+            <img id="previewImage" src="" alt="Preview">
+            <br>
+            <button id="downloadButton">Download</button>
+            <button id="closeButton">Close</button>
+        </div>
     </div>
 
     <script>
@@ -137,11 +179,16 @@
             const fileInput = document.getElementById('fileInput');
             const videoElement = document.getElementById('videoElement');
             const canvasElement = document.getElementById('canvasElement');
-            const randomFrameButton = document.getElementById('randomFrameButton');
             const getCoverButton = document.getElementById('getCoverButton');
-            const downloadFrameButton = document.getElementById('downloadFrameButton');
+            const getCurrentFrameButton = document.getElementById('getCurrentFrameButton');
+            const getRandomFrameButton = document.getElementById('getRandomFrameButton');
+            const previewModal = document.getElementById('previewModal');
+            const previewImage = document.getElementById('previewImage');
+            const downloadButton = document.getElementById('downloadButton');
+            const closeButton = document.getElementById('closeButton');
             const ctx = canvasElement.getContext('2d');
             let videoFileName = '';
+            let currentImageURL = '';
 
             // 阻止浏览器默认的拖拽事件
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -162,8 +209,12 @@
                 dropZone.addEventListener(eventName, () => dropZone.classList.remove('hover'), false);
             });
 
+            // 点击区域时打开文件选择器
+            dropZone.addEventListener('click', () => fileInput.click());
+
             // 处理拖拽文件
             dropZone.addEventListener('drop', handleDrop, false);
+            fileInput.addEventListener('change', handleFileSelection, false);
 
             function handleDrop(e) {
                 const file = e.dataTransfer.files[0];
@@ -172,15 +223,12 @@
                 }
             }
 
-            // 点击区域时打开文件选择器
-            dropZone.addEventListener('click', () => fileInput.click());
-
-            fileInput.addEventListener('change', function () {
-                const file = fileInput.files[0];
+            function handleFileSelection(e) {
+                const file = e.target.files[0];
                 if (file && file.type.startsWith('video/')) {
                     handleVideoFile(file);
                 }
-            });
+            }
 
             function handleVideoFile(file) {
                 const url = URL.createObjectURL(file);
@@ -188,69 +236,25 @@
                 videoElement.src = url;
                 videoElement.style.display = 'block';
                 getCoverButton.style.display = 'inline-block';
-                randomFrameButton.style.display = 'inline-block';
-                downloadFrameButton.style.display = 'none'; // 隐藏下载随机帧按钮，直到帧被提取
+                getCurrentFrameButton.style.display = 'inline-block';
+                getRandomFrameButton.style.display = 'inline-block';
             }
 
-            // 获取视频的封面（第一帧），并下载
+            // 提取视频封面（第一帧）
             getCoverButton.addEventListener('click', function () {
-                videoElement.addEventListener('loadeddata', function() {
-                    videoElement.currentTime = 0;  // 设置为视频开始的第一帧
-                });
-
-                videoElement.addEventListener('seeked', function () {
-                    canvasElement.width = videoElement.videoWidth;
-                    canvasElement.height = videoElement.videoHeight;
-                    ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-
-                    // 下载图片
-                    const link = document.createElement('a');
-                    link.href = canvasElement.toDataURL('image/png');
-                    
-                    // 替换文件名中的 "video" 为 "pic"
-                    let imageName = videoFileName.replace(/video/gi, 'pic');
-                    imageName = imageName.replace(/\.[^/.]+$/, ".png"); // 将扩展名修改为 .png
-                    link.download = imageName;
-                    
-                    // 触发下载
-                    link.click();
+                videoElement.currentTime = 0;  // 跳转到视频第一帧
+                videoElement.addEventListener('seeked', function captureFrame() {
+                    extractFrame("cover");
+                    videoElement.removeEventListener('seeked', captureFrame);
                 }, { once: true });
             });
 
-            // 抽取随机帧
-            randomFrameButton.addEventListener('click', function () {
+            // 提取当前播放帧
+            getCurrentFrameButton.addEventListener('click', function () {
+                extractFrame("current");
+            });
+
+            // 提取随机帧
+            getRandomFrameButton.addEventListener('click', function () {
                 const duration = videoElement.duration;
-                const randomTime = Math.random() * duration;
-
-                videoElement.currentTime = randomTime;
-
-                videoElement.addEventListener('seeked', function extractFrame() {
-                    canvasElement.width = videoElement.videoWidth;
-                    canvasElement.height = videoElement.videoHeight;
-                    ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-                    videoElement.removeEventListener('seeked', extractFrame);
-
-                    // 显示下载按钮
-                    downloadFrameButton.style.display = 'inline-block';
-                }, { once: true });
-            });
-
-            // 下载随机帧
-            downloadFrameButton.addEventListener('click', function() {
-                // 下载当前显示的帧
-                const link = document.createElement('a');
-                link.href = canvasElement.toDataURL('image/png');
-
-                // 生成下载文件名，替换 "video" 为 "pic" 并标识随机帧
-                let imageName = videoFileName.replace(/video/gi, 'pic');
-                imageName = imageName.replace(/\.[^/.]+$/, "_random.png"); // 修改扩展名并加上标识
-                link.download = imageName;
-
-                // 触发下载
-                link.click();
-            });
-        });
-    </script>
-
-</body>
-</html>
+                const randomTime = Math.random()
