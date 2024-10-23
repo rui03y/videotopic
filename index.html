@@ -152,7 +152,7 @@
                 <p>or click to upload</p>
             </div>
         </div>
-        <input type="file" id="fileInput" accept="video/*" style="display: none;">
+        <input type="file" id="fileInput" accept="video/*">
         
         <video id="videoElement" controls style="display: none;"></video>
         <canvas id="canvasElement" style="display: none;"></canvas>
@@ -209,7 +209,7 @@
             });
 
             // 点击区域时打开文件选择器
-            dropZone.addEventListener('click', function() {
+            dropZone.addEventListener('click', function () {
                 fileInput.click();  // 确保点击时触发文件选择器
             });
 
