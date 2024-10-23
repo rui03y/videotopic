@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Frame Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .drop-zone {
+            width: 300px;
+            height: 200px;
+            border: 2px dashed #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            color: #888;
+        }
+
+        .drop-zone.hover {
+            border-color: #00aaff;
+        }
+
+        video, canvas {
+            display: block;
+            margin-bottom: 20px;
+            max-width: 100%;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="drop-zone" id="dropZone">Drag & Drop Video Here</div>
+    <input type="file" id="fileInput" accept="video/*" style="display: none;">
+    
+    <video id="videoElement" controls style="display: none;"></video>
+    <canvas id="canvasElement"></canvas>
+    
+    <button id="randomFrameButton" style="display: none;">Extract Random Frame</button>
+
+    <script src="script.js"></script>
+</body>
+</html>
