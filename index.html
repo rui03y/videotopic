@@ -47,6 +47,7 @@
         button:hover {
             background-color: #0056b3;
         }
+
     </style>
 </head>
 <body>
@@ -57,6 +58,7 @@
     <video id="videoElement" controls style="display: none;"></video>
     <canvas id="canvasElement"></canvas>
     
+    <button id="getCoverButton" style="display: none;">Get and Download Video Cover</button>
     <button id="randomFrameButton" style="display: none;">Extract Random Frame</button>
 
     <script>
@@ -66,7 +68,9 @@
             const videoElement = document.getElementById('videoElement');
             const canvasElement = document.getElementById('canvasElement');
             const randomFrameButton = document.getElementById('randomFrameButton');
+            const getCoverButton = document.getElementById('getCoverButton');
             const ctx = canvasElement.getContext('2d');
+            let videoFileName = '';
 
             // 阻止浏览器默认的拖拽事件
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -109,16 +113,33 @@
 
             function handleVideoFile(file) {
                 const url = URL.createObjectURL(file);
+                videoFileName = file.name;
                 videoElement.src = url;
                 videoElement.style.display = 'block';
+                getCoverButton.style.display = 'inline-block';
                 randomFrameButton.style.display = 'inline-block';
             }
 
-            // 获取视频的封面（第一帧）
-            videoElement.addEventListener('loadeddata', function () {
-                canvasElement.width = videoElement.videoWidth;
-                canvasElement.height = videoElement.videoHeight;
-                ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+            // 获取视频的封面（第一帧），并下载
+            getCoverButton.addEventListener('click', function () {
+                videoElement.currentTime = 0;  // 设置为视频开始的第一帧
+                videoElement.addEventListener('loadeddata', function () {
+                    canvasElement.width = videoElement.videoWidth;
+                    canvasElement.height = videoElement.videoHeight;
+                    ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+
+                    // 下载图片
+                    const link = document.createElement('a');
+                    link.href = canvasElement.toDataURL('image/png');
+                    
+                    // 替换文件名中的 "video" 为 "pic"
+                    let imageName = videoFileName.replace(/video/gi, 'pic');
+                    imageName = imageName.replace(/\.[^/.]+$/, ".png"); // 将扩展名修改为 .png
+                    link.download = imageName;
+                    
+                    // 触发下载
+                    link.click();
+                }, { once: true });
             });
 
             // 抽取随机帧
@@ -129,9 +150,11 @@
                 videoElement.currentTime = randomTime;
 
                 videoElement.addEventListener('seeked', function extractFrame() {
+                    canvasElement.width = videoElement.videoWidth;
+                    canvasElement.height = videoElement.videoHeight;
                     ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
                     videoElement.removeEventListener('seeked', extractFrame);
-                });
+                }, { once: true });
             });
         });
     </script>
