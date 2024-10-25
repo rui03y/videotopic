@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>bigo快捷图片素材抽取</title>
+    <title>视频帧提取器</title>
     <style>
         /* 全局样式 */
         * {
@@ -56,10 +56,9 @@
         video, canvas {
             display: block;
             margin: 20px auto;
+            max-width: 100%;
             border-radius: 8px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            max-width: 100%;  /* 确保视频不会超过父容器的宽度 */
-            max-height: 400px; /* 添加最大高度，避免占据过多垂直空间 */
         }
 
         /* 按钮样式 */
@@ -88,6 +87,16 @@
         /* 隐藏的文件输入 */
         #fileInput {
             display: none;
+        }
+
+        /* 输入框 */
+        .input-link {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
         }
 
         /* 弹窗样式 */
@@ -146,17 +155,14 @@
             background-color: #cc0000;
         }
 
-        /* 高亮显示 pic */
-        .highlight {
-            color: red;
-        }
-
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>bigo快捷图片素材抽取</h1>
+        <h1>视频帧提取器</h1>
+        <input type="text" id="videoLink" class="input-link" placeholder="输入视频链接 (.mp4)">
+        <button id="loadVideoButton">加载视频</button>
         <div class="drop-zone" id="dropZone">
             <p>拖动视频到此处，或点击上传</p>
         </div>
@@ -195,6 +201,8 @@
             const filenameInput = document.getElementById('filenameInput');
             const downloadButton = document.getElementById('downloadButton');
             const closeButton = document.getElementById('closeButton');
+            const videoLinkInput = document.getElementById('videoLink');
+            const loadVideoButton = document.getElementById('loadVideoButton');
             const ctx = canvasElement.getContext('2d');
             let videoFileName = '';
             let currentImageURL = '';
@@ -232,6 +240,26 @@
             });
 
             fileInput.addEventListener('change', handleFileSelection, false);
+
+            // 通过视频链接加载视频
+            loadVideoButton.addEventListener('click', function () {
+                const videoLink = videoLinkInput.value.trim();
+                if (videoLink && videoLink.endsWith('.mp4')) {
+                    videoElement.src = videoLink;
+                    videoFileName = videoLink.split('/').pop(); // 提取文件名
+                    videoElement.style.display = 'block';
+
+                    // 视频加载完成后显示按钮
+                    videoElement.addEventListener('loadeddata', function() {
+                        getCoverButton.style.display = 'inline-block';
+                        getCurrentFrameButton.style.display = 'inline-block';
+                        getRandomFrameButton.style.display = 'inline-block';
+                    });
+
+                } else {
+                    alert("请输入有效的 MP4 视频链接");
+                }
+            });
 
             function handleDrop(e) {
                 const file = e.dataTransfer.files[0];
@@ -293,11 +321,9 @@
                 currentImageURL = canvasElement.toDataURL('image/png');
                 previewImage.src = currentImageURL;
 
-                // 生成默认的文件名并显示在输入框中，标红 "pic"
-                let cleanFileName = videoFileName.replace(/\.[^/.]+$/, '').replace(/video/gi, '<span class="highlight">pic</span>');
+                // 生成默认的文件名并显示在输入框中
                 filenameInput.value = videoFileName.replace(/\.[^/.]+$/, '').replace(/video/gi, 'pic');
-                
-                previewModal.style.display = 'flex';
+                previewModal.style.display = 'flex';  // 确保弹窗显示
 
                 // 确保下载按钮只绑定一次事件
                 downloadButton.removeEventListener('click', downloadImage);
