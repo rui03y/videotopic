@@ -3,264 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>视频帧提取器</title>
+    <title>Video Frame Extractor</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
-        }
-
         body {
-            background-color: #f4f7f6;
+            font-family: Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            background-color: #f0f0f0;
         }
-
         .container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 600px;
-            text-align: center;
-        }
-
-        .drop-zone {
-            width: 100%;
-            height: 200px;
-            border: 2px dashed #00aaff;
+            background: #fff;
+            padding: 20px;
             border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        .drop-zone {
+            border: 2px dashed #007bff;
+            padding: 20px;
+            border-radius: 8px;
             cursor: pointer;
-            color: #00aaff;
+            color: #007bff;
+            margin-bottom: 20px;
         }
-
-        .drop-zone p {
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        video, canvas {
+        video {
             display: block;
             margin: 20px auto;
             max-width: 100%;
-            border-radius: 8px;
         }
-
-        button {
-            padding: 12px 20px;
-            font-size: 16px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            margin: 10px;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #218838;
-        }
-
-        button:disabled {
-            background-color: #ccc;
-        }
-
-        #fileInput {
+        canvas {
             display: none;
         }
-
-        .input-link {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            font-size: 16px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
         }
-
+        button:hover {
+            background-color: #0056b3;
+        }
         .modal {
             display: none;
             position: fixed;
-            z-index: 1000;
-            left: 0;
             top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.5);
             justify-content: center;
             align-items: center;
         }
-
         .modal-content {
-            background-color: #fff;
+            background: #fff;
             padding: 20px;
-            border-radius: 12px;
+            border-radius: 8px;
             text-align: center;
-            max-width: 400px;
-            width: 90%;
         }
-
         .modal img {
             max-width: 100%;
-            border-radius: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
-
-        .filename-input {
-            width: 100%;
-            padding: 10px;
-            margin: 15px 0;
-            font-size: 16px;
-            text-align: center;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-        }
-
-        .close-btn {
-            background-color: #ff0000;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .close-btn:hover {
-            background-color: #cc0000;
-        }
-
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>视频帧提取器</h1>
-        <input type="text" id="videoLink" class="input-link" placeholder="输入视频链接 (.mp4)">
-        <button id="loadVideoButton">加载视频</button>
-        <div class="drop-zone" id="dropZone">
-            <p>拖动视频到此处，或点击上传</p>
-        </div>
-        <input type="file" id="fileInput" accept="video/*">
-        
-        <video id="videoElement" controls style="display: none;"></video>
-        <canvas id="canvasElement" style="display: none;"></canvas>
-        
-        <button id="getCoverButton" style="display: none;">提取封面</button>
-        <button id="getCurrentFrameButton" style="display: none;">提取当前帧</button>
-        <button id="getRandomFrameButton" style="display: none;">提取随机帧</button>
+<div class="container">
+    <div class="drop-zone" id="dropZone">Drag & Drop Video Here or Click to Upload</div>
+    <input type="file" id="fileInput" accept="video/*" style="display:none;">
+    <video id="videoElement" controls style="display:none;"></video>
+    <canvas id="canvasElement"></canvas>
+    <button id="extractCoverButton" style="display:none;">Extract Video Cover</button>
+    <button id="extractFrameButton" style="display:none;">Extract Current Frame</button>
+</div>
+
+<div class="modal" id="previewModal">
+    <div class="modal-content">
+        <img id="previewImage" alt="Extracted Frame">
+        <br>
+        <button id="downloadButton">Download</button>
+        <button id="closeButton">Close</button>
     </div>
+</div>
 
-    <!-- 弹窗 -->
-    <div class="modal" id="previewModal">
-        <div class="modal-content">
-            <img id="previewImage" src="" alt="Preview">
-            <input type="text" id="filenameInput" class="filename-input">
-            <br>
-            <button id="downloadButton">下载</button>
-            <button id="closeButton" class="close-btn">关闭</button>
-        </div>
-    </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const videoElement = document.getElementById('videoElement');
+        const canvasElement = document.getElementById('canvasElement');
+        const extractCoverButton = document.getElementById('extractCoverButton');
+        const extractFrameButton = document.getElementById('extractFrameButton');
+        const previewModal = document.getElementById('previewModal');
+        const previewImage = document.getElementById('previewImage');
+        const downloadButton = document.getElementById('downloadButton');
+        const closeButton = document.getElementById('closeButton');
+        const ctx = canvasElement.getContext('2d');
+        let currentImageURL = '';
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const dropZone = document.getElementById('dropZone');
-            const fileInput = document.getElementById('fileInput');
-            const videoElement = document.getElementById('videoElement');
-            const canvasElement = document.getElementById('canvasElement');
-            const getCoverButton = document.getElementById('getCoverButton');
-            const getCurrentFrameButton = document.getElementById('getCurrentFrameButton');
-            const getRandomFrameButton = document.getElementById('getRandomFrameButton');
-            const previewModal = document.getElementById('previewModal');
-            const previewImage = document.getElementById('previewImage');
-            const filenameInput = document.getElementById('filenameInput');
-            const downloadButton = document.getElementById('downloadButton');
-            const closeButton = document.getElementById('closeButton');
-            const videoLinkInput = document.getElementById('videoLink');
-            const loadVideoButton = document.getElementById('loadVideoButton');
-            const ctx = canvasElement.getContext('2d');
-            let videoFileName = '';
-            let currentImageURL = '';
+        dropZone.addEventListener('click', () => fileInput.click());
 
-            // 阻止浏览器默认的拖拽事件
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.backgroundColor = '#e8f0fe';
+        });
 
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, preventDefaults, false);
-            });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.backgroundColor = '';
+        });
 
-            dropZone.addEventListener('drop', handleDrop, false);
-            dropZone.addEventListener('click', function () {
-                fileInput.click();
-            });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.backgroundColor = '';
+            handleFiles(e.dataTransfer.files);
+        });
 
-            fileInput.addEventListener('change', handleFileSelection, false);
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 
-            loadVideoButton.addEventListener('click', function () {
-                const videoLink = videoLinkInput.value.trim();
-                if (videoLink && videoLink.endsWith('.mp4')) {
-                    videoElement.src = videoLink;
-                    videoFileName = videoLink.split('/').pop();
-                    videoElement.style.display = 'block';
-                    videoElement.addEventListener('loadeddata', function () {
-                        getCoverButton.style.display = 'inline-block';
-                        getCurrentFrameButton.style.display = 'inline-block';
-                        getRandomFrameButton.style.display = 'inline-block';
-                    });
-                } else {
-                    alert("请输入有效的 MP4 视频链接");
-                }
-            });
-
-            function handleDrop(e) {
-                const file = e.dataTransfer.files[0];
-                if (file && file.type.startsWith('video/')) {
-                    handleVideoFile(file);
-                }
-            }
-
-            function handleFileSelection(e) {
-                const file = e.target.files[0];
-                if (file && file.type.startsWith('video/')) {
-                    handleVideoFile(file);
-                }
-            }
-
-            function handleVideoFile(file) {
+        function handleFiles(files) {
+            const file = files[0];
+            if (file && file.type.startsWith('video/')) {
                 const url = URL.createObjectURL(file);
-                videoFileName = file.name;
                 videoElement.src = url;
                 videoElement.style.display = 'block';
-                getCoverButton.style.display = 'inline-block';
-                getCurrentFrameButton.style.display = 'inline-block';
-                getRandomFrameButton.style.display = 'inline-block';
+                extractCoverButton.style.display = 'inline-block';
+                extractFrameButton.style.display = 'inline-block';
             }
+        }
 
-            function captureFrame(time) {
-                videoElement.currentTime = time;
-                videoElement.addEventListener('seeked', function capture() {
-                    canvasElement.width = videoElement.videoWidth;
-                    canvasElement.height = videoElement.videoHeight;
-                    ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-                    currentImageURL = canvasElement.toDataURL('image/png');
-                    previewImage.src = currentImageURL;
-                    filenameInput.value = videoFileName.replace(/\.[^/.]+$/, '').replace(/video/gi, 'pic');
-                    previewModal.style.display = 'flex';
-                    videoElement.removeEventListener('seeked', capture);
-                });
-            }
+        extractCoverButton.addEventListener('click', () => {
+            videoElement.currentTime = 0;
+            videoElement.addEventListener('seeked', extractFrame, { once: true });
+        });
 
-           
+        extractFrameButton.addEventListener('click', () => {
+            extractFrame();
+        });
+
+        function extractFrame() {
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+            currentImageURL = canvasElement.toDataURL('image/png');
+            previewImage.src = currentImageURL;
+            previewModal.style.display = 'flex';
+        }
+
+        downloadButton.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.href = currentImageURL;
+            link.download = 'extracted_frame.png';
+            link.click();
+        });
+
+        closeButton.addEventListener('click', () => {
+            previewModal.style.display = 'none';
+        });
+    });
+</script>
+
+</body>
+</html>
