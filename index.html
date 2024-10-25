@@ -207,6 +207,7 @@
             let videoFileName = '';
             let currentImageURL = '';
 
+            // 阻止浏览器默认的拖拽事件
             function preventDefaults(e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -263,6 +264,7 @@
                 getRandomFrameButton.style.display = 'inline-block';
             }
 
+            // 提取帧逻辑
             getCoverButton.addEventListener('click', function () {
                 captureFrame(0);
             });
