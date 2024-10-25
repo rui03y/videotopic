@@ -11,44 +11,53 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f0f0f0;
+            background-color: #1b1e2f;
+            color: #fff;
         }
         .container {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background: #2c2f48;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
             text-align: center;
             max-width: 500px;
             width: 100%;
         }
         .drop-zone {
-            border: 2px dashed #007bff;
+            border: 2px dashed #00c1ff;
             padding: 20px;
             border-radius: 8px;
             cursor: pointer;
-            color: #007bff;
+            color: #00c1ff;
             margin-bottom: 20px;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        .drop-zone:hover {
+            background-color: #1f2237;
+            border-color: #00e5ff;
         }
         video {
             display: block;
             margin: 20px auto;
             max-width: 100%;
+            border-radius: 8px;
         }
         canvas {
             display: none;
         }
         button {
-            padding: 10px 20px;
+            padding: 12px 25px;
             margin: 10px;
             border: none;
-            background-color: #007bff;
-            color: white;
-            border-radius: 4px;
+            background-color: #00c1ff;
+            color: #fff;
+            border-radius: 8px;
             cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
         }
         button:hover {
-            background-color: #0056b3;
+            background-color: #00e5ff;
+            transform: translateY(-2px);
         }
         .modal {
             display: none;
@@ -57,26 +66,40 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.7);
             justify-content: center;
             align-items: center;
         }
         .modal-content {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
+            background: #2c2f48;
+            padding: 30px;
+            border-radius: 12px;
             text-align: center;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
         }
         .modal img {
             max-width: 100%;
             margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        .filename-input {
+            width: calc(100% - 20px);
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            text-align: center;
+            border: 2px solid #00c1ff;
+            border-radius: 8px;
+            background-color: #1b1e2f;
+            color: #fff;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <input type="text" id="videoLink" class="input-link" placeholder="Enter video link (.mp4)" style="width: calc(100% - 20px); margin-bottom: 20px; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+    <input type="text" id="videoLink" class="input-link" placeholder="Enter video link (.mp4)" style="width: calc(100% - 20px); margin-bottom: 20px; padding: 10px; border-radius: 8px; border: 1px solid #00c1ff; background-color: #1b1e2f; color: #fff;">
     <button id="loadVideoButton">Load Video</button>
     <div class="drop-zone" id="dropZone">Drag & Drop Video Here or Click to Upload</div>
     <input type="file" id="fileInput" accept="video/*" style="display:none;">
@@ -90,6 +113,7 @@
     <div class="modal-content">
         <img id="previewImage" alt="Extracted Frame">
         <br>
+        <input type="text" id="filenameInput" class="filename-input" value="">
         <button id="downloadButton">Download</button>
         <button id="closeButton">Close</button>
     </div>
@@ -109,6 +133,7 @@
         const closeButton = document.getElementById('closeButton');
         const videoLinkInput = document.getElementById('videoLink');
         const loadVideoButton = document.getElementById('loadVideoButton');
+        const filenameInput = document.getElementById('filenameInput');
         const ctx = canvasElement.getContext('2d');
         let currentImageURL = '';
         let videoFileName = '';
@@ -117,7 +142,7 @@
 
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
-            dropZone.style.backgroundColor = '#e8f0fe';
+            dropZone.style.backgroundColor = '#1f2237';
         });
 
         dropZone.addEventListener('dragleave', () => {
@@ -176,13 +201,14 @@
             ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
             currentImageURL = canvasElement.toDataURL('image/png');
             previewImage.src = currentImageURL;
+            filenameInput.value = videoFileName + '_frame';
             previewModal.style.display = 'flex';
         }
 
         downloadButton.addEventListener('click', () => {
             const link = document.createElement('a');
             link.href = currentImageURL;
-            link.download = videoFileName + '_frame.png';
+            link.download = filenameInput.value + '.png';
             link.click();
         });
 
