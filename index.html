@@ -76,6 +76,8 @@
 <body>
 
 <div class="container">
+    <input type="text" id="videoLink" class="input-link" placeholder="Enter video link (.mp4)" style="width: calc(100% - 20px); margin-bottom: 20px; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+    <button id="loadVideoButton">Load Video</button>
     <div class="drop-zone" id="dropZone">Drag & Drop Video Here or Click to Upload</div>
     <input type="file" id="fileInput" accept="video/*" style="display:none;">
     <video id="videoElement" controls style="display:none;"></video>
@@ -105,8 +107,11 @@
         const previewImage = document.getElementById('previewImage');
         const downloadButton = document.getElementById('downloadButton');
         const closeButton = document.getElementById('closeButton');
+        const videoLinkInput = document.getElementById('videoLink');
+        const loadVideoButton = document.getElementById('loadVideoButton');
         const ctx = canvasElement.getContext('2d');
         let currentImageURL = '';
+        let videoFileName = '';
 
         dropZone.addEventListener('click', () => fileInput.click());
 
@@ -127,11 +132,25 @@
 
         fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 
+        loadVideoButton.addEventListener('click', () => {
+            const videoLink = videoLinkInput.value.trim();
+            if (videoLink && videoLink.endsWith('.mp4')) {
+                videoElement.src = videoLink;
+                videoFileName = videoLink.split('/').pop().replace(/\.mp4$/i, '').replace(/video/gi, 'pic');
+                videoElement.style.display = 'block';
+                extractCoverButton.style.display = 'inline-block';
+                extractFrameButton.style.display = 'inline-block';
+            } else {
+                alert("Please enter a valid MP4 video link.");
+            }
+        });
+
         function handleFiles(files) {
             const file = files[0];
             if (file && file.type.startsWith('video/')) {
                 const url = URL.createObjectURL(file);
                 videoElement.src = url;
+                videoFileName = file.name.replace(/\.mp4$/i, '').replace(/video/gi, 'pic');
                 videoElement.style.display = 'block';
                 extractCoverButton.style.display = 'inline-block';
                 extractFrameButton.style.display = 'inline-block';
@@ -144,7 +163,11 @@
         });
 
         extractFrameButton.addEventListener('click', () => {
-            extractFrame();
+            if (!isNaN(videoElement.duration)) {
+                extractFrame();
+            } else {
+                alert("Video is not loaded yet. Please wait.");
+            }
         });
 
         function extractFrame() {
@@ -159,7 +182,7 @@
         downloadButton.addEventListener('click', () => {
             const link = document.createElement('a');
             link.href = currentImageURL;
-            link.download = 'extracted_frame.png';
+            link.download = videoFileName + '_frame.png';
             link.click();
         });
 
