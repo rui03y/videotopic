@@ -207,55 +207,33 @@
             let videoFileName = '';
             let currentImageURL = '';
 
-            // 阻止浏览器默认的拖拽事件
             function preventDefaults(e) {
                 e.preventDefault();
                 e.stopPropagation();
-            }
-
-            // 确保拖拽高亮工作
-            function highlight() {
-                dropZone.classList.add('highlight');
-            }
-
-            function unhighlight() {
-                dropZone.classList.remove('highlight');
             }
 
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                 dropZone.addEventListener(eventName, preventDefaults, false);
             });
 
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropZone.addEventListener(eventName, highlight, false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, unhighlight, false);
-            });
-
             dropZone.addEventListener('drop', handleDrop, false);
             dropZone.addEventListener('click', function () {
-                fileInput.click();  // 触发文件选择器
+                fileInput.click();
             });
 
             fileInput.addEventListener('change', handleFileSelection, false);
 
-            // 通过视频链接加载视频
             loadVideoButton.addEventListener('click', function () {
                 const videoLink = videoLinkInput.value.trim();
                 if (videoLink && videoLink.endsWith('.mp4')) {
                     videoElement.src = videoLink;
-                    videoFileName = videoLink.split('/').pop(); // 提取文件名
+                    videoFileName = videoLink.split('/').pop();
                     videoElement.style.display = 'block';
-
-                    // 视频加载完成后显示按钮
-                    videoElement.addEventListener('loadeddata', function() {
+                    videoElement.addEventListener('loadeddata', function () {
                         getCoverButton.style.display = 'inline-block';
                         getCurrentFrameButton.style.display = 'inline-block';
                         getRandomFrameButton.style.display = 'inline-block';
                     });
-
                 } else {
                     alert("请输入有效的 MP4 视频链接");
                 }
@@ -285,62 +263,41 @@
                 getRandomFrameButton.style.display = 'inline-block';
             }
 
-            // 提取视频封面（第一帧）
             getCoverButton.addEventListener('click', function () {
-                videoElement.currentTime = 0;  // 跳转到视频第一帧
-                videoElement.addEventListener('seeked', function captureFrame() {
-                    extractFrame();
-                    videoElement.removeEventListener('seeked', captureFrame);
-                }, { once: true });
+                captureFrame(0);
             });
 
-            // 提取当前播放帧
             getCurrentFrameButton.addEventListener('click', function () {
-                extractFrame();
+                captureFrame(videoElement.currentTime);
             });
 
-            // 提取随机帧
             getRandomFrameButton.addEventListener('click', function () {
-                const duration = videoElement.duration;
-                const randomTime = Math.random() * duration;
-                videoElement.currentTime = randomTime;
-
-                videoElement.addEventListener('seeked', function captureRandomFrame() {
-                    extractFrame();
-                    videoElement.removeEventListener('seeked', captureRandomFrame);
-                }, { once: true });
+                const randomTime = Math.random() * videoElement.duration;
+                captureFrame(randomTime);
             });
 
-            // 提取帧并显示弹窗
-            function extractFrame() {
-                canvasElement.width = videoElement.videoWidth;
-                canvasElement.height = videoElement.videoHeight;
-                ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-
-                // 获取图片 URL 并显示到弹窗
-                currentImageURL = canvasElement.toDataURL('image/png');
-                previewImage.src = currentImageURL;
-
-                // 生成默认的文件名并显示在输入框中
-                filenameInput.value = videoFileName.replace(/\.[^/.]+$/, '').replace(/video/gi, 'pic');
-                previewModal.style.display = 'flex';  // 确保弹窗显示
-
-                // 确保下载按钮只绑定一次事件
-                downloadButton.removeEventListener('click', downloadImage);
-                downloadButton.addEventListener('click', downloadImage);
+            function captureFrame(time) {
+                videoElement.currentTime = time;
+                videoElement.addEventListener('seeked', function capture() {
+                    canvasElement.width = videoElement.videoWidth;
+                    canvasElement.height = videoElement.videoHeight;
+                    ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+                    currentImageURL = canvasElement.toDataURL('image/png');
+                    previewImage.src = currentImageURL;
+                    filenameInput.value = videoFileName.replace(/\.[^/.]+$/, '').replace(/video/gi, 'pic');
+                    previewModal.style.display = 'flex';
+                    videoElement.removeEventListener('seeked', capture);
+                });
             }
 
-            // 下载图像
-            function downloadImage() {
+            downloadButton.addEventListener('click', function () {
                 const link = document.createElement('a');
                 link.href = currentImageURL;
-                const imageName = filenameInput.value + '.png';  // 使用编辑后的文件名
-                link.download = imageName;
+                link.download = filenameInput.value + '.png';
                 link.click();
-            }
+            });
 
-            // 关闭弹窗
-            closeButton.addEventListener('click', function() {
+            closeButton.addEventListener('click', function () {
                 previewModal.style.display = 'none';
             });
         });
