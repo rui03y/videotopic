@@ -37,8 +37,10 @@
             border-color: #00e5ff;
         }
         video {
+            $1width: 400px;
+            height: 300px;
             display: block;
-            margin: 20px auto;
+            margin: 0 auto;
             max-width: 100%;
             border-radius: 8px;
         }
@@ -79,6 +81,9 @@
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
         }
         .modal img {
+            $1width: 400px;
+            height: 300px;
+            margin: 0 auto;
             max-width: 100%;
             margin-bottom: 20px;
             border-radius: 8px;
@@ -99,11 +104,11 @@
 <body>
 
 <div class="container">
-    <input type="text" id="videoLink" class="input-link" placeholder="Enter video link (.mp4)" style="width: calc(100% - 20px); margin-bottom: 20px; padding: 10px; border-radius: 8px; border: 1px solid #00c1ff; background-color: #1b1e2f; color: #fff;">
+    <input type="text" id="videoLink" placeholder="Enter video link (.mp4)" style="width: calc(100% - 20px); margin-bottom: 20px; padding: 10px; border-radius: 8px; border: 1px solid #00c1ff; background-color: #1b1e2f; color: #fff;">
     <button id="loadVideoButton">Load Video</button>
+    
     <div class="drop-zone" id="dropZone">Drag & Drop Video Here or Click to Upload</div>
-    <input type="file" id="fileInput" accept="video/*" style="display:none;">
-    <video id="videoElement" controls style="display:none;"></video>
+        <video id="videoElement" controls style="display:none;"></video>
     <canvas id="canvasElement"></canvas>
     <button id="extractCoverButton" style="display:none;">Extract Video Cover</button>
     <button id="extractFrameButton" style="display:none;">Extract Current Frame</button>
@@ -122,7 +127,11 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'video/*';
+        fileInput.style.display = 'none';
+        dropZone.appendChild(fileInput);
         const videoElement = document.getElementById('videoElement');
         const canvasElement = document.getElementById('canvasElement');
         const extractCoverButton = document.getElementById('extractCoverButton');
@@ -138,17 +147,17 @@
         let currentImageURL = '';
         let videoFileName = '';
 
-        dropZone.addEventListener('click', () => fileInput.click());
-
+        
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.style.backgroundColor = '#1f2237';
         });
-
         dropZone.addEventListener('dragleave', () => {
             dropZone.style.backgroundColor = '';
         });
-
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.style.backgroundColor = '';
@@ -184,7 +193,10 @@
 
         extractCoverButton.addEventListener('click', () => {
             videoElement.currentTime = 0;
-            videoElement.addEventListener('seeked', extractFrame, { once: true });
+            videoElement.addEventListener('seeked', function onSeeked() {
+                extractFrame();
+                videoElement.removeEventListener('seeked', onSeeked);
+            });
         });
 
         extractFrameButton.addEventListener('click', () => {
@@ -201,7 +213,7 @@
             ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
             currentImageURL = canvasElement.toDataURL('image/png');
             previewImage.src = currentImageURL;
-            filenameInput.value = videoFileName + '_frame';
+            filenameInput.value = videoFileName;
             previewModal.style.display = 'flex';
         }
 
